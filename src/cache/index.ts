@@ -22,7 +22,7 @@ export class Cache<K, V> implements ICache<K, V> {
   public getMany = (keys: K[]): Array<IItem<K, V>> => {
     this.index.markGet(keys);
     return keys.map(key => ({ key, value: this.store.get(key) }));
-  }
+  };
 
   public put = (key: K, value: V) => this.putMany([{ key, value }]);
   public putMany = (items: Array<IItem<K, V>>) => this.insert(items);
@@ -40,5 +40,5 @@ export class Cache<K, V> implements ICache<K, V> {
     }
     items.map(item => this.store.put(item.key, item.value));
     this.index.addKeys(items.map(i => i.key));
-  }
+  };
 }

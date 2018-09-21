@@ -6,15 +6,16 @@
   "author": "Marcus Peterson",
   "license": "MIT",
   "devDependencies": {
-    "@babel/preset-typescript": "^7.1.0",
     "@types/jest": "^23.3.2",
     "jest": "^23.6.0",
+    "prettier": "1.14.3",
     "ts-jest": "^23.10.1",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.15.0",
     "typescript": "^3.0.3"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "yarn lint:base -l",
+    "lint:fix": "yarn lint:base --write",
+    "lint:base": "prettier --config ./prettier.config.js 'src/**/*'"
   }
 }
