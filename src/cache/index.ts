@@ -17,28 +17,45 @@ export class Cache<K, V> implements ICache<K, V> {
     this.index = index;
   }
 
-  // Public interface
+  // #region Public interface
+  public getCapacity = () => this.cacheConfig.capacity;
+  public setCapacity = (capacity: number) => {
+    this.cacheConfig.capacity = capacity;
+    const numberToClear = this.index.getLength() - this.cacheConfig.capacity;
+    if (numberToClear > 0) {
+      const keysToRemove = this.index.removeLast(numberToClear);
+      this.delete(keysToRemove);
+    }
+  };
+
   public get = (key: K): V => this.getMany([key])[0].value;
   public getMany = (keys: K[]): Array<IItem<K, V>> => {
     this.index.markGet(keys);
-    return keys.map(key => ({ key, value: this.store.get(key) }));
+    return keys.map(key => ({ key, value: this.store.get(key) || null }));
   };
 
   public put = (key: K, value: V) => this.putMany([{ key, value }]);
   public putMany = (items: Array<IItem<K, V>>) => this.insert(items);
 
   public remove = (key: K) => this.removeMany([key]);
-  public removeMany = (keys: K[]) => keys.map(key => this.store.delete(key));
+  public removeMany = (keys: K[]) => this.delete(keys);
+  // #endregion
 
-  // private methods
+  // #region Private methods
   private insert = (items: Array<IItem<K, V>>) => {
     const numberToClear =
       this.index.getLength() + items.length - this.cacheConfig.capacity;
     if (numberToClear > 0) {
-      const keysToRemove = this.index.clearLast(numberToClear);
+      const keysToRemove = this.index.removeLast(numberToClear);
       this.removeMany(keysToRemove);
     }
     items.map(item => this.store.put(item.key, item.value));
     this.index.addKeys(items.map(i => i.key));
   };
+
+  private delete = (keys: K[]) => {
+    this.index.removeKeys(keys);
+    keys.map(key => this.store.delete(key));
+  };
+  // #endregion
 }

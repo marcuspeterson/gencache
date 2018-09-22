@@ -3,5 +3,6 @@ export interface IIndex<K> {
   getLength: () => number;
   markGet: (keys: K[]) => void;
   addKeys: (keys: K[]) => void;
-  clearLast: (count: number) => K[];
+  removeKeys: (keys: K[]) => void;
+  removeLast: (count: number) => K[];
 }

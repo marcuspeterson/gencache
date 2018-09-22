@@ -7,6 +7,8 @@ export interface IItem<K, V> {
 }
 
 export interface ICache<K, V> {
+  getCapacity: () => number;
+  setCapacity: (capacity: number) => void;
   put: (key: K, value: V) => void;
   putMany: (values: Array<IItem<K, V>>) => void;
   get: (key: K) => V;
