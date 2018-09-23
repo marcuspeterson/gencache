@@ -13,6 +13,7 @@
     "typescript": "^3.0.3"
   },
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "lint": "yarn lint:base -l",
     "lint:fix": "yarn lint:base --write",
