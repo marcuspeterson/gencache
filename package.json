@@ -15,6 +15,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "yarn lint:base -l",
     "lint:fix": "yarn lint:base --write",
     "lint:base": "prettier --config ./prettier.config.js 'src/**/*'"
