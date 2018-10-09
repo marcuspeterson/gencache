@@ -6,6 +6,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "lib": ["es7"],
-    "outDir": "build"
+    "outDir": "build",
+    "types": ["node", "jest"]
   }
 }

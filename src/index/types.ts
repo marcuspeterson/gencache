@@ -6,3 +6,5 @@ export interface IIndex<K> {
   removeKeys: (keys: K[]) => void;
   removeLast: (count: number) => K[];
 }
+
+export type IndexType = "fifo";

@@ -1,6 +1,6 @@
 import { IIndex } from "../index/types";
 import { IStore } from "../store/types";
-import { ICache, ICacheConfig, ICacheOptions, IItem } from "./types";
+import { ICache, ICacheConfig, IItem } from "./types";
 
 export class Cache<K, V> implements ICache<K, V> {
   private cacheConfig: ICacheConfig<K, V>;
@@ -43,12 +43,18 @@ export class Cache<K, V> implements ICache<K, V> {
 
   // #region Private methods
   private insert = (items: Array<IItem<K, V>>) => {
-    const numberToClear =
-      this.index.getLength() + items.length - this.cacheConfig.capacity;
+    const { capacity } = this.cacheConfig;
+    const numberToClear = this.index.getLength() + items.length - capacity;
+
     if (numberToClear > 0) {
       const keysToRemove = this.index.removeLast(numberToClear);
       this.removeMany(keysToRemove);
     }
+
+    if (items.length > capacity) {
+      items.splice(capacity);
+    }
+
     items.map(item => this.store.put(item.key, item.value));
     this.index.addKeys(items.map(i => i.key));
   };

@@ -151,6 +151,19 @@ describe("Cache", () => {
       expect(removeLastSpy).toHaveBeenCalledWith(2);
       expect(addKeysSpy).toHaveBeenCalledTimes(1);
     });
+
+    test("should only insert items up to capacity", () => {
+      const cache = createCache();
+      cache.setCapacity(2);
+      cache.putMany([
+        { key: "key", value: { value: "new value" } },
+        { key: "key2", value: { value: "another value" } },
+        { key: "key3", value: { value: "third value" } },
+      ]);
+      expect(cache.get("key").value).toBe("new value");
+      expect(cache.get("key2").value).toBe("another value");
+      expect(cache.get("key3")).toBeNull();
+    });
   });
 
   describe("remove", () => {

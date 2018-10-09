@@ -4,4 +4,4 @@ export interface IStore<K, V> {
   delete: (key: K) => boolean;
 }
 
-export type Store = "map" | "redux";
+export type StoreType = "map" | "redux";
