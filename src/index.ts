@@ -38,3 +38,6 @@ export const createCache = <K, V>(options?: CacheOptions): ICache<K, V> => {
 
   return new Cache(opts, store, index);
 };
+
+export { CacheOptions };
+export { ICache };

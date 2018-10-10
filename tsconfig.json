@@ -6,7 +6,9 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "lib": ["es7"],
-    "outDir": "build",
+    "declaration": true,
+    "outDir": "dist",
     "types": ["node", "jest"]
-  }
+  },
+  "include": ["src/**/*"]
 }

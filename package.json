@@ -1,8 +1,9 @@
 {
   "name": "gencache",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A generic cache",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Marcus Peterson",
   "license": "MIT",
   "devDependencies": {
@@ -19,6 +20,7 @@
     "test:watch": "jest --watch",
     "lint": "yarn lint:base -l",
     "lint:fix": "yarn lint:base --write",
-    "lint:base": "prettier --config ./prettier.config.js 'src/**/*'"
+    "lint:base": "prettier --config ./prettier.config.js 'src/**/*'",
+    "clean": "rm -rf dist/"
   }
 }
