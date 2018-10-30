@@ -1,14 +1,16 @@
 import { IIndex } from "../index/types";
 import { IStore } from "../store/types";
-import { ICache, ICacheConfig, IItem } from "./types";
+import { ICache, ICacheConfig } from "./types";
+import { IItem } from "../common/types";
+import { performance } from "perf_hooks";
 
 export class Cache<K, V> implements ICache<K, V> {
-  private cacheConfig: ICacheConfig<K, V>;
+  private cacheConfig: ICacheConfig;
   private store: IStore<K, V>;
   private index: IIndex<K>;
 
   constructor(
-    cacheConfig: ICacheConfig<K, V>,
+    cacheConfig: ICacheConfig,
     store: IStore<K, V>,
     index: IIndex<K>,
   ) {
@@ -28,13 +30,14 @@ export class Cache<K, V> implements ICache<K, V> {
     }
   };
 
-  public get = (key: K): V => this.getMany([key])[0].value;
-  public getMany = (keys: K[]): Array<IItem<K, V>> => {
-    this.index.markGet(keys);
-    return keys.map(key => ({ key, value: this.store.get(key) || null }));
+  public get = (key: K): V => {
+    const value = this.getMany([key])[0];
+    return value ? value.value : null;
   };
+  public getMany = (keys: K[]): Array<IItem<K, V>> => this.retrieve(keys);
 
-  public put = (key: K, value: V) => this.putMany([{ key, value }]);
+  public put = (key: K, value: V, ttl: number) =>
+    this.putMany([{ key, value, expiry: ttl ? Date.now() + ttl : null }]);
   public putMany = (items: Array<IItem<K, V>>) => this.insert(items);
 
   public remove = (key: K) => this.removeMany([key]);
@@ -55,13 +58,33 @@ export class Cache<K, V> implements ICache<K, V> {
       items.splice(capacity);
     }
 
-    items.map(item => this.store.put(item.key, item.value));
+    items.map(item => this.store.put(item));
     this.index.addKeys(items.map(i => i.key));
   };
 
   private delete = (keys: K[]) => {
     this.index.removeKeys(keys);
     keys.map(key => this.store.delete(key));
+  };
+
+  private retrieve = (keys: K[]): Array<IItem<K, V>> => {
+    this.index.markGet(keys);
+
+    const expiredKeys: K[] = [];
+    const items = keys.reduce((acc, key) => {
+      const item = this.store.get(key) || { key, value: null };
+      if (item.expiry && item.expiry < Date.now()) {
+        item.value = null;
+        expiredKeys.push(key);
+      }
+      acc.push(item);
+      return acc;
+    }, []);
+
+    if (expiredKeys.length) {
+      this.index.removeKeys(expiredKeys);
+    }
+    return items;
   };
   // #endregion
 }

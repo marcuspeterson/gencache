@@ -2,6 +2,7 @@ import { IIndex } from "../index/types";
 import { IStore } from "../store/types";
 import { Cache } from "./index";
 import { ICache } from "./types";
+import { IItem } from "../common/types";
 
 type Key = string;
 type Value = { value: string };
@@ -18,15 +19,15 @@ const getIndex = (index: Key[]): IIndex<Key> => ({
 });
 
 let cacheStore: IStore<Key, Value>;
-const getStore = (map: Map<Key, Value>): IStore<Key, Value> => ({
+const getStore = (map: Map<Key, IItem<Key, Value>>): IStore<Key, Value> => ({
   delete: key => map.delete(key),
   get: key => map.get(key),
-  put: (key, value) => map.set(key, value),
+  put: value => map.set(value.key, value),
 });
 
 const createCache = (
   index: string[] = [],
-  map: Map<Key, Value> = new Map(),
+  map: Map<Key, IItem<Key, Value>> = new Map(),
 ): ICache<Key, Value> => {
   cacheStore = getStore(map);
   cacheIndex = getIndex(index);
@@ -46,7 +47,9 @@ describe("Cache", () => {
     test("should return a value", () => {
       const cache = createCache(
         ["key"],
-        new Map<Key, Value>([["key", { value: "value" }]]),
+        new Map<Key, IItem<Key, Value>>([
+          ["key", { key: "key", value: { value: "value" } }],
+        ]),
       );
       const item = cache.get("key");
       expect(item.value).toBe("value");
@@ -55,6 +58,42 @@ describe("Cache", () => {
     test("should return null when no value present", () => {
       const cache = createCache();
       expect(cache.get("key")).toBeNull();
+    });
+
+    test("should not return an expired value", () => {
+      const cache = createCache(
+        ["key"],
+        new Map<Key, IItem<Key, Value>>([
+          [
+            "key",
+            {
+              key: "key",
+              value: { value: "value" },
+              expiry: 1,
+            },
+          ],
+        ]),
+      );
+      const item = cache.get("key");
+      expect(item).toBeNull();
+    });
+
+    test("should return a value that hasn't expired yet", () => {
+      const cache = createCache(
+        ["key"],
+        new Map<Key, IItem<Key, Value>>([
+          [
+            "key",
+            {
+              key: "key",
+              value: { value: "value" },
+              expiry: Date.now() + 10000,
+            },
+          ],
+        ]),
+      );
+      const item = cache.get("key");
+      expect(item.value).toBe("value");
     });
   });
 
@@ -69,10 +108,10 @@ describe("Cache", () => {
     test("should return values", () => {
       const cache = createCache(
         ["key", "key2", "key3"],
-        new Map<Key, Value>([
-          ["key", { value: "value_1" }],
-          ["key2", { value: "value_2" }],
-          ["key3", { value: "value_3" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key", { key: "key", value: { value: "value_1" } }],
+          ["key2", { key: "key2", value: { value: "value_2" } }],
+          ["key3", { key: "key3", value: { value: "value_3" } }],
         ]),
       );
       const items = cache.getMany(["key", "key2", "key3"]);
@@ -84,9 +123,9 @@ describe("Cache", () => {
     test("should return null values when no value present", () => {
       const cache = createCache(
         ["key", "key2", "key3"],
-        new Map<Key, Value>([
-          ["key", { value: "value_1" }],
-          ["key3", { value: "value_3" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key", { key: "key", value: { value: "value_1" } }],
+          ["key3", { key: "key3", value: { value: "value_3" } }],
         ]),
       );
       const items = cache.getMany(["key", "key2", "key3"]);
@@ -107,9 +146,9 @@ describe("Cache", () => {
     test("should call clear items if we are going to exceed capacity", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeLastSpy = jest.spyOn(cacheIndex, "removeLast");
@@ -135,9 +174,9 @@ describe("Cache", () => {
     test("should call clear items if we are going to exceed capacity", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeLastSpy = jest.spyOn(cacheIndex, "removeLast");
@@ -170,9 +209,9 @@ describe("Cache", () => {
     test("should inform the index of deletion", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeKeysSpy = jest.spyOn(cacheIndex, "removeKeys");
@@ -182,9 +221,9 @@ describe("Cache", () => {
     test("should delete the item from the store", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeSpy = jest.spyOn(cacheStore, "delete");
@@ -197,9 +236,9 @@ describe("Cache", () => {
     test("should inform the index of deletion", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeKeysSpy = jest.spyOn(cacheIndex, "removeKeys");
@@ -209,9 +248,9 @@ describe("Cache", () => {
     test("should delete the item from the store", () => {
       const cache = createCache(
         ["key1", "key2"],
-        new Map<Key, Value>([
-          ["key1", { value: "value1" }],
-          ["key2", { value: "value2" }],
+        new Map<Key, IItem<Key, Value>>([
+          ["key1", { key: "key1", value: { value: "value1" } }],
+          ["key2", { key: "key2", value: { value: "value2" } }],
         ]),
       );
       const removeSpy = jest.spyOn(cacheStore, "delete");
@@ -241,6 +280,40 @@ describe("Cache", () => {
 
       expect(removeLastSpy).toHaveBeenCalledWith(2);
       expect(deleteSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("expiry", () => {
+    test("should stop a value from being returned", done => {
+      const cache = createCache();
+      cache.put("value", { value: "value_1" }, 10);
+
+      let item = cache.get("value");
+      expect(item.value).toBe("value_1");
+
+      setTimeout(() => {
+        item = cache.get("value");
+        expect(item).toBeNull();
+        done();
+      }, 50);
+    });
+
+    test("should remove a value from the index", done => {
+      const cache = createCache();
+      const removeKeysSpy = jest.spyOn(cacheIndex, "removeKeys");
+
+      cache.put("value", { value: "value_1" }, 10);
+
+      let item = cache.get("value");
+      expect(item.value).toBe("value_1");
+
+      setTimeout(() => {
+        item = cache.get("value");
+        expect(item).toBeNull();
+        expect(removeKeysSpy).toHaveBeenCalledTimes(1);
+        expect(removeKeysSpy).toHaveBeenCalledWith(["value"]);
+        done();
+      }, 50);
     });
   });
 });

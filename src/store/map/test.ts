@@ -13,9 +13,9 @@ describe("Map Store", () => {
     test("should return value if present", () => {
       const store: IStore<Key, Value> = createMapStore();
       const value = { data: true };
-      store.put("value", value);
-      expect(store.get("value")).toBe(value);
-      expect(store.get("value").data).toBe(true);
+      store.put({ key: "value", value });
+      expect(store.get("value").value).toBe(value);
+      expect(store.get("value").value.data).toBe(true);
     });
   });
 
@@ -24,20 +24,20 @@ describe("Map Store", () => {
       const store: IStore<Key, Value> = createMapStore();
       expect(store.get("value")).toBeNull();
       const value = { data: true };
-      store.put("value", value);
-      expect(store.get("value")).toBe(value);
-      expect(store.get("value").data).toBe(true);
+      store.put({ key: "value", value });
+      expect(store.get("value").value).toBe(value);
+      expect(store.get("value").value.data).toBe(true);
     });
     test("should overwrite previous values", () => {
       const store: IStore<Key, Value> = createMapStore();
       const value = { data: true };
       const newValue = { data: true };
 
-      store.put("value", value);
-      expect(store.get("value")).toBe(value);
+      store.put({ key: "value", value });
+      expect(store.get("value").value).toBe(value);
 
-      store.put("value", newValue);
-      expect(store.get("value")).toBe(newValue);
+      store.put({ key: "value", value: newValue });
+      expect(store.get("value").value).toBe(newValue);
     });
   });
 
@@ -46,8 +46,8 @@ describe("Map Store", () => {
       const store: IStore<Key, Value> = createMapStore();
       const value = { data: true };
 
-      store.put("value", value);
-      expect(store.get("value")).toBe(value);
+      store.put({ key: "value", value });
+      expect(store.get("value").value).toBe(value);
 
       store.delete("value");
       expect(store.get("value")).toBeNull();
