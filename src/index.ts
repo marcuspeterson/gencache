@@ -1,5 +1,5 @@
 import { CacheOptions } from "./config/types";
-import { createMapStore } from "./store";
+import { createMapStore } from "./store/map";
 import { StoreType, IStore } from "./store/types";
 import { IndexType, IIndex } from "./index/types";
 import { createFifoIndex } from "./index/fifo";

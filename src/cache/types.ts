@@ -1,6 +1,6 @@
 import { IItem } from "../common/types";
 
-export interface ICache<K, V> {
+export type ICache<K, V> = {
   getCapacity: () => number;
   setCapacity: (capacity: number) => void;
   put: (key: K, value: V, expiry?: number) => void;
@@ -9,8 +9,8 @@ export interface ICache<K, V> {
   getMany: (keys: K[]) => Array<IItem<K, V>>;
   remove: (key: K) => void;
   removeMany: (keys: K[]) => void;
-}
+};
 
-export interface ICacheConfig {
+export type CacheConfig = {
   capacity: number;
-}
+};
